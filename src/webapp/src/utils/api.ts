@@ -121,8 +121,19 @@ class API {
      * 保存Cookie
      * @param json {"Host":"","Cookie":""}
      */
-    saveCookie(json:any){
-        return utils.requestPut(`${BASE_URL}/cookies`,json);
+    saveCookie(json: any) {
+        return utils.requestPut(`${BASE_URL}/cookies`, json);
+    }
+
+    /**
+     * 获取/更新远程控制设置
+     */
+    getRemoteSettings() {
+        return utils.requestGet(`${BASE_URL}/remote`);
+    }
+
+    putRemoteSettings(token: string, remoteMode: boolean) {
+        return utils.requestPut(`${BASE_URL}/remote`, { token, remoteMode });
     }
 }
 

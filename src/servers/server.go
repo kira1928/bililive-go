@@ -45,6 +45,9 @@ func initMux(ctx context.Context) *mux.Router {
 	apiRoute.HandleFunc("/config", putConfig).Methods("PUT")
 	apiRoute.HandleFunc("/raw-config", getRawConfig).Methods("GET")
 	apiRoute.HandleFunc("/raw-config", putRawConfig).Methods("PUT")
+	// remote control settings
+	apiRoute.HandleFunc("/remote", getRemoteSettings).Methods("GET")
+	apiRoute.HandleFunc("/remote", putRemoteSettings).Methods("PUT")
 	apiRoute.HandleFunc("/lives", getAllLives).Methods("GET")
 	apiRoute.HandleFunc("/lives", addLives).Methods("POST")
 	apiRoute.HandleFunc("/lives/{id}", getLive).Methods("GET")
@@ -72,6 +75,9 @@ func initMux(ctx context.Context) *mux.Router {
 	if err != nil {
 		instance.GetInstance(ctx).Logger.Fatal(err)
 	}
+	// Rewrite /ui/* to /*: strip '/ui' prefix and forward to router, handling API and static together
+	m.PathPrefix("/ui").Handler(http.StripPrefix("/ui", m))
+	// catch-all: serve static files at root
 	m.PathPrefix("/").Handler(http.FileServer(fs))
 
 	// pprof

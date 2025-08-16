@@ -65,6 +65,9 @@ type Log struct {
 type Config struct {
 	File                 string               `yaml:"-"`
 	RPC                  RPC                  `yaml:"rpc"`
+	RemoteMode           bool                 `yaml:"remote_mode"`
+	ServerAddr           string               `yaml:"server_addr"`
+	JWTToken             string               `yaml:"jwt_token"`
 	Debug                bool                 `yaml:"debug"`
 	Interval             int                  `yaml:"interval"`
 	OutPutPath           string               `yaml:"out_put_path"`
@@ -134,6 +137,9 @@ func NewLiveRoomsWithStrings(strings []string) []LiveRoom {
 
 var defaultConfig = Config{
 	RPC:        defaultRPC,
+	RemoteMode: false,
+	ServerAddr: "",
+	JWTToken:   "",
 	Debug:      false,
 	Interval:   30,
 	OutPutPath: "./",
@@ -170,6 +176,11 @@ func NewConfig() *Config {
 func (c *Config) Verify() error {
 	if c == nil {
 		return fmt.Errorf("config is null")
+	}
+	if c.RemoteMode {
+		if c.ServerAddr == "" || c.JWTToken == "" {
+			return fmt.Errorf("remote_mode requires server_addr and jwt_token to be set")
+		}
 	}
 	if err := c.RPC.verify(); err != nil {
 		return err

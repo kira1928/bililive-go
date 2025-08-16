@@ -22,6 +22,9 @@ var (
 	Conf            = app.Flag("config", "Config file.").Short('c').String()
 	RPC             = app.Flag("enable-rpc", "Enable RPC server.").Default("false").Bool()
 	RPCBind         = app.Flag("rpc-bind", "RPC server bind address").Default(":8080").String()
+	RemoteMode      = app.Flag("remote-mode", "Enable remote mode; connect to remote UI server").Default("false").Bool()
+	ServerAddr      = app.Flag("server-addr", "Remote server address").Default("127.0.0.1:8080").String()
+	JWTToken        = app.Flag("jwt-token", "JWT token for authentication").Default("").String()
 	NativeFlvParser = app.Flag("native-flv-parser", "use native flv parser").Default("false").Bool()
 	OutputFileTmpl  = app.Flag("output-file-tmpl", "output file name template").Default("").String()
 	SplitStrategies = app.Flag("split-strategies", "video split strategies, support\"on_room_name_changed\", \"max_duration:(duration)\"").Strings()
@@ -47,6 +50,9 @@ func GenConfigFromFlags() *configs.Config {
 	cfg.Feature = configs.Feature{
 		UseNativeFlvParser: *NativeFlvParser,
 	}
+	cfg.RemoteMode = *RemoteMode
+	cfg.ServerAddr = *ServerAddr
+	cfg.JWTToken = *JWTToken
 
 	if SplitStrategies != nil && len(*SplitStrategies) > 0 {
 		for _, s := range *SplitStrategies {

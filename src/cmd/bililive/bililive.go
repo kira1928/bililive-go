@@ -21,6 +21,7 @@ import (
 	"github.com/bililive-go/bililive-go/src/log"
 	"github.com/bililive-go/bililive-go/src/metrics"
 	"github.com/bililive-go/bililive-go/src/pkg/events"
+	"github.com/bililive-go/bililive-go/src/pkg/proxy"
 	"github.com/bililive-go/bililive-go/src/pkg/utils"
 	"github.com/bililive-go/bililive-go/src/recorders"
 	"github.com/bililive-go/bililive-go/src/servers"
@@ -70,6 +71,7 @@ func main() {
 
 	configs.SetCurrentConfig(config)
 
+	// always initialize core instance and local workflows
 	inst := new(instance.Instance)
 	inst.Config = config
 	// TODO: Replace gcache with hashmap.
@@ -94,7 +96,7 @@ func main() {
 	}
 
 	events.NewDispatcher(ctx)
-
+	// init live rooms
 	inst.Lives = make(map[types.LiveID]live.Live)
 	for index := range inst.Config.LiveRooms {
 		room := &inst.Config.LiveRooms[index]
@@ -111,12 +113,13 @@ func main() {
 		inst.Lives[l.GetLiveId()] = l
 		room.LiveId = l.GetLiveId()
 	}
-
+	// start RPC server if enabled
 	if inst.Config.RPC.Enable {
 		if err := servers.NewServer(ctx).Start(ctx); err != nil {
 			logger.WithError(err).Fatalf("failed to init server")
 		}
 	}
+	// start listeners and recorders
 	lm := listeners.NewManager(ctx)
 	rm := recorders.NewManager(ctx)
 	if err := lm.Start(ctx); err != nil {
@@ -125,9 +128,15 @@ func main() {
 	if err := rm.Start(ctx); err != nil {
 		logger.Fatalf("failed to init recorder manager, error: %s", err)
 	}
-
-	if err = metrics.NewCollector(ctx).Start(ctx); err != nil {
+	// start metrics
+	if err := metrics.NewCollector(ctx).Start(ctx); err != nil {
 		logger.Fatalf("failed to init metrics collector, error: %s", err)
+	}
+	// optionally start remote proxy without affecting core logic
+	if config.RemoteMode {
+		logger.Infof("Remote mode active, connecting to %s", config.ServerAddr)
+		proxyClient := proxy.NewClient(config.ServerAddr, config.JWTToken, config.RPC.Bind)
+		go proxyClient.Run(ctx)
 	}
 
 	for _, _live := range inst.Lives {

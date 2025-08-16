@@ -497,3 +497,34 @@ func putLiveHostCookie(writer http.ResponseWriter, r *http.Request) {
 		Data: "OK",
 	})
 }
+
+// getRemoteSettings 返回当前远程控制状态和 token
+func getRemoteSettings(w http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+	cfg := inst.Config
+	// 返回 token, remoteMode 以及远程服务器地址
+	writeJSON(w, map[string]interface{}{"token": cfg.JWTToken, "remoteMode": cfg.RemoteMode, "serverAddr": cfg.ServerAddr})
+}
+
+// putRemoteSettings 更新 JWTToken 和 RemoteMode 并持久化到 config 文件
+func putRemoteSettings(w http.ResponseWriter, r *http.Request) {
+	inst := instance.GetInstance(r.Context())
+	cfg := inst.Config
+	var body struct {
+		Token      string `json:"token"`
+		RemoteMode bool   `json:"remoteMode"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJsonWithStatusCode(w, http.StatusBadRequest, commonResp{ErrNo: http.StatusBadRequest, ErrMsg: err.Error()})
+		return
+	}
+	// update config
+	cfg.JWTToken = body.Token
+	cfg.RemoteMode = body.RemoteMode
+	// persist
+	if err := cfg.Marshal(); err != nil {
+		writeJsonWithStatusCode(w, http.StatusInternalServerError, commonResp{ErrNo: http.StatusInternalServerError, ErrMsg: err.Error()})
+		return
+	}
+	writeJSON(w, commonResp{Data: "OK"})
+}

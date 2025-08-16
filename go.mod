@@ -11,6 +11,8 @@ require (
 	github.com/alecthomas/kingpin v2.2.7-0.20180312062423-a39589180ebd+incompatible
 	github.com/bluele/gcache v0.0.0-20190518031135-bc40bd653833
 	github.com/gorilla/mux v1.7.4
+	github.com/gorilla/websocket v1.5.0
+	github.com/hashicorp/yamux v0.1.2
 	github.com/hr3lxphr6j/requests v0.0.1
 	github.com/lthibault/jitterbug v2.0.0+incompatible
 	github.com/prometheus/client_golang v1.11.0
