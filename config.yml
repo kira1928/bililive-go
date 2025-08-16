@@ -1,7 +1,7 @@
 rpc:
   enable: true
   bind: :8080
-remote_mode: true
+remote_mode: false
 server_addr: http://localhost:8081
 jwt_token: ""
 debug: true
